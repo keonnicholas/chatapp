@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node index.js"
+    "start": "parcel",
+    "build": "parcel build"
   },
   "dependencies": {
     "body-parser": "^1.19.1",
@@ -15,5 +16,7 @@
     "mongoose": "^6.1.5",
     "socket.io": "^4.4.1"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "parcel": "^2.2.1"
+  }
 }
