@@ -3,7 +3,6 @@ require('dotenv').config()
 const { createServer } = require('http')
 const moment = require('moment')
 const app = express()
-const path = require('path')
 const Mongo = require('mongodb').MongoClient
 const mongoose = require('mongoose')
 const ObjectId = mongoose.Types.ObjectId
@@ -13,7 +12,6 @@ const socketClient = new Server(httpServer)
 const Room = require('./Room')
 const Message = require('./Message')
 const User = require('./User')
-const port = 3010
 const uri = process.env.MONGODB_URI
 Mongo.connect(uri, (err, client) => {
   if (!client) return
@@ -148,8 +146,8 @@ Mongo.connect(uri, (err, client) => {
 
 app.use(express.static(__dirname + '/pages'))
 
-if (process.env.NODE_ENV == 'development') {
-  httpServer.listen(port, () => {
-    console.log(`Example app listening at http://localhost:${port}`)
-  })
-}
+//if (process.env.NODE_ENV == 'development') {
+httpServer.listen(process.env.PORT, () => {
+  console.log(`Example app listening at http://localhost:${process.env.PORT}`)
+})
+//}
