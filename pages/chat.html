@@ -1,0 +1,36 @@
+<style>
+  #messages {
+    height: 450px;
+    width: 300px;
+    border: 1px solid black;
+  }
+</style>
+<script
+  src="https://cdn.socket.io/4.4.1/socket.io.min.js"
+  integrity="sha384-fKnu0iswBIqkjxrhQCTZ7qlLHOFEgNkRmK2vaO/LbTZSXdJfAu6ewRBdwHPhBo/H"
+  crossorigin="anonymous"
+></script>
+<h1>Welcome</h1>
+<div id="messages"></div>
+<input type="text" name="text" id="input" />
+
+<script>
+  ;(function () {
+    const input = document.getElementById('input')
+    const messagesDiv = document.getElementById('messages')
+
+    const socket = io()
+    if (socket) {
+      console.log('Connected to socket')
+      socket.on('messages', messages => {
+        messagesDiv.innerHTML = messages.map(
+          msg =>
+            `<p>${msg.senderId} : ${msg.text} <span style="font-size: x-small" id=${msg._id}>...${msg.status}</span></p>`
+        )
+      })
+      socket.on('status change', change => {
+        document.getElementById(change.id).innerText = `...${change.status}`
+      })
+    }
+  })()
+</script>

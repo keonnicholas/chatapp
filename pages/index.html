@@ -1,0 +1,138 @@
+<style>
+  .container {
+    width: 400px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .roomsWrapper,
+  .chatWrapper {
+    display: none;
+  }
+  .room {
+    border: 1px solid lightblue;
+  }
+  #messages {
+    height: 200px;
+    margin-bottom: 10px;
+    border: 1px solid black;
+    overflow: scroll;
+  }
+</style>
+<script
+  src="https://cdn.socket.io/4.4.1/socket.io.min.js"
+  integrity="sha384-fKnu0iswBIqkjxrhQCTZ7qlLHOFEgNkRmK2vaO/LbTZSXdJfAu6ewRBdwHPhBo/H"
+  crossorigin="anonymous"
+></script>
+<script
+  src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"
+  integrity="sha512-qTXRIMyZIFb8iQcfjXWCO8+M5Tbc38Qi5WzdPOYZHIlZpzBHG3L3by84BBBOiRGiEb7KKtAOAs5qYdUiZiQNNQ=="
+  crossorigin="anonymous"
+  referrerpolicy="no-referrer"
+></script>
+<div class="container">
+  <div class="loginWrapper">
+    <h1>Login As:</h1>
+    <select name="login" id="login"></select>
+  </div>
+  <div class="roomsWrapper">
+    <h1>Select Room:</h1>
+  </div>
+  <div class="chatWrapper">
+    <div id="messages"></div>
+    <input type="text" name="text" id="input" />
+    <button id="logout">logout</button>
+  </div>
+</div>
+<script>
+  ;(function () {
+    let user = null
+    let roomId = null
+    const socket = io()
+    if (socket) {
+      const loginWrapper = document.querySelector('.loginWrapper')
+      const roomsWrapper = document.querySelector('.roomsWrapper')
+      const chatWrapper = document.querySelector('.chatWrapper')
+      const login = document.getElementById('login')
+      const logout = document.getElementById('logout')
+      const input = document.getElementById('input')
+      const messagesDiv = document.getElementById('messages')
+      const space = document.createElement('p')
+      space.innerHTML = ''
+      space.setAttribute('id', 'space')
+
+      login.onchange = e => {
+        user = { id: e.target.value, name: e.target.options[e.target.selectedIndex].text }
+        socket.emit('login', { id: e.target.value })
+      }
+      logout.onclick = e => {
+        socket.emit('logout', user.id)
+        user = null
+        roomId = null
+        login.value = 0
+        chatWrapper.style.display = 'none'
+        loginWrapper.style.cssText = 'display: block;'
+      }
+      window.onblur = e => {
+        socket.emit('set user inactive', user?.id)
+      }
+      window.onfocus = e => {
+        socket.emit('set user active', { user: user?.id, room: roomId })
+      }
+      input.onkeydown = e => {
+        if (e.code === 'Enter') {
+          socket.emit('new message', { user: user, text: e.target.value, room: roomId })
+          input.value = ''
+        }
+      }
+
+      socket.on('users', users => {
+        login.innerHTML =
+          users.map(user => `<option value='${user._id}'>${user.name}</option>`) +
+          '<option value=0 selected disabled> select </option>'
+      })
+
+      socket.on('rooms', rooms => {
+        loginWrapper.style.display = 'none'
+        roomsWrapper.style.cssText = 'display: flex; flex-direction: column;'
+        const roomEls = rooms.map(room => {
+          const el = document.createElement('h4')
+          el.innerText = room.name
+          el.setAttribute('id', room._id)
+          el.onclick = e => {
+            roomId = e.target.id
+            socket.emit('get messages', { id: e.target.id, user: user.id })
+          }
+          return el
+        })
+        roomsWrapper.innerHTML = '<h1>Select Room:</h1>'
+        roomEls.forEach(el => roomsWrapper.append(el))
+      })
+
+      socket.on('messages', messages => {
+        roomsWrapper.style.display = 'none'
+        chatWrapper.style.cssText = 'display: flex; flex-direction: column;'
+        messagesDiv.innerHTML = messages
+          .map(
+            msg =>
+              `<p>${msg.msg.senderId.name} : ${msg.msg.text} <span style="font-size: x-small" id=${msg.msg._id}>...${msg.status}</span></p>`
+          )
+          .join('')
+        messagesDiv.append(space)
+        space.scrollIntoView(true, { behavior: 'smooth' })
+      })
+
+      socket.on('status change', change => {
+        document.getElementById(change.id).innerText = `...${change.status}`
+      })
+
+      socket.on('push message', msg => {
+        if (document.getElementById(msg.doc._id)) return
+        space.remove()
+        messagesDiv.innerHTML += `<p>${msg.doc.senderId.name} : ${msg.doc.text} <span style="font-size: x-small" id=${msg.doc._id}>...${msg.status}</span></p>`
+        messagesDiv.append(space)
+        space.scrollIntoView(true, { behavior: 'smooth' })
+      })
+    }
+  })()
+</script>
