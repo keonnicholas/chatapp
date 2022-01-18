@@ -146,13 +146,10 @@ Mongo.connect(uri, (err, client) => {
   })
 })
 
-app.use(express.static('static'))
-app.engine('html', require('ejs').renderFile)
+app.use(express.static(__dirname + '/pages'))
 
-app.get('/', (req, res) => {
-  res.render(path.resolve('pages/index.html'))
-})
-
-httpServer.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`)
-})
+if (process.env.NODE_ENV == 'development') {
+  httpServer.listen(port, () => {
+    console.log(`Example app listening at http://localhost:${port}`)
+  })
+}
