@@ -64,10 +64,12 @@
       space.innerHTML = ''
       space.setAttribute('id', 'space')
 
+      // on login, set the user
       login.onchange = e => {
         user = { id: e.target.value, name: e.target.options[e.target.selectedIndex].text }
         socket.emit('login', { id: e.target.value })
       }
+      //handles logout
       logout.onclick = e => {
         socket.emit('logout', user.id)
         user = null
@@ -77,25 +79,31 @@
         messagesDiv.innerHTML = ''
         loginWrapper.style.display = 'block'
       }
+
+      //on blur simulate user is not currently active on the app so no new messages should be read
       window.onblur = e => {
         socket.emit('set user inactive', user?.id)
       }
+      //on focus, simulate user is in the room and has read all messages
       window.onfocus = e => {
         socket.emit('set user active', { user: user?.id, room: roomId })
       }
+
+      //submit on enter
       input.onkeydown = e => {
         if (e.code === 'Enter') {
           socket.emit('new message', { user: user, text: e.target.value, room: roomId })
           input.value = ''
         }
       }
-
+      //set users selection options
       socket.on('users', users => {
         login.innerHTML =
           users.map(user => `<option value='${user._id}'>${user.name}</option>`) +
           '<option value=0 selected disabled> select </option>'
       })
 
+      //set room selection options
       socket.on('rooms', rooms => {
         loginWrapper.style.display = 'none'
         const roomEls = rooms.map(room => {
@@ -112,6 +120,7 @@
         roomEls.forEach(el => roomsWrapper.append(el))
       })
 
+      //populate messages
       socket.on('messages', messages => {
         messagesDiv.innerHTML = messages
           .map(
@@ -126,11 +135,13 @@
         space.scrollIntoView(true, { behavior: 'smooth' })
       })
 
+      //update status when each message status has changed
       socket.on('status change', change => {
-        if (document.getElementById(change.id))
+        if (document.getElementById(change.id) && change.user == user.id)
           document.getElementById(change.id).innerText = `...${change.status}`
       })
 
+      //push new messages to view
       socket.on('push message', msg => {
         if (document.getElementById(msg.doc._id)) return
         space.remove()
