@@ -1,14 +1,16 @@
 <style>
   .container {
-    width: 400px;
+    width: 100vw;
     min-height: 100vh;
     display: flex;
-    flex-direction: column;
+    justify-content: space-evenly;
   }
   .roomsWrapper,
   .chatWrapper {
-    display: none;
+    display: flex;
+    flex-direction: column;
   }
+
   .room {
     border: 1px solid lightblue;
   }
@@ -39,6 +41,7 @@
     <h1>Select Room:</h1>
   </div>
   <div class="chatWrapper">
+    <h1>Chat</h1>
     <div id="messages"></div>
     <input type="text" name="text" id="input" />
     <button id="logout">logout</button>
@@ -70,8 +73,9 @@
         user = null
         roomId = null
         login.value = 0
-        chatWrapper.style.display = 'none'
-        loginWrapper.style.cssText = 'display: block;'
+        roomsWrapper.innerHTML = '<h1>Select Room:</h1>'
+        messagesDiv.innerHTML = ''
+        loginWrapper.style.display = 'block'
       }
       window.onblur = e => {
         socket.emit('set user inactive', user?.id)
@@ -94,7 +98,6 @@
 
       socket.on('rooms', rooms => {
         loginWrapper.style.display = 'none'
-        roomsWrapper.style.cssText = 'display: flex; flex-direction: column;'
         const roomEls = rooms.map(room => {
           const el = document.createElement('h4')
           el.innerText = room.name
@@ -110,12 +113,18 @@
       })
 
       socket.on('messages', messages => {
-        roomsWrapper.style.display = 'none'
-        chatWrapper.style.cssText = 'display: flex; flex-direction: column;'
         messagesDiv.innerHTML = messages
           .map(
             msg =>
-              `<p>${msg.msg.senderId.name} : ${msg.msg.text} <span style="font-size: x-small" id=${msg.msg._id}>...${msg.status}</span></p>`
+              `<p>${msg.msg.senderId.name} : ${msg.msg.text} ${
+                msg.msg.senderId._id == user.id
+                  ? '<span style="font-size: x-small" id="' +
+                    msg.msg._id +
+                    '" >...' +
+                    msg.status +
+                    '</span></p>'
+                  : '</p>'
+              }`
           )
           .join('')
         messagesDiv.append(space)
@@ -123,13 +132,22 @@
       })
 
       socket.on('status change', change => {
-        document.getElementById(change.id).innerText = `...${change.status}`
+        if (document.getElementById(change.id))
+          document.getElementById(change.id).innerText = `...${change.status}`
       })
 
       socket.on('push message', msg => {
         if (document.getElementById(msg.doc._id)) return
         space.remove()
-        messagesDiv.innerHTML += `<p>${msg.doc.senderId.name} : ${msg.doc.text} <span style="font-size: x-small" id=${msg.doc._id}>...${msg.status}</span></p>`
+        messagesDiv.innerHTML += `<p>${msg.doc.senderId.name} : ${msg.doc.text} ${
+          msg.doc.senderId._id == user.id
+            ? '<span style="font-size: x-small" id="' +
+              msg.doc._id +
+              '" >...' +
+              msg.status +
+              '</span></p>'
+            : '</p>'
+        }`
         messagesDiv.append(space)
         space.scrollIntoView(true, { behavior: 'smooth' })
       })
