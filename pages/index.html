@@ -116,15 +116,10 @@
         messagesDiv.innerHTML = messages
           .map(
             msg =>
-              `<p>${msg.msg.senderId.name} : ${msg.msg.text} ${
-                msg.msg.senderId._id == user.id
-                  ? '<span style="font-size: x-small" id="' +
-                    msg.msg._id +
-                    '" >...' +
-                    msg.status +
-                    '</span></p>'
-                  : '</p>'
-              }`
+              `<p>${msg.msg.senderId.name} : ${msg.msg.text} <span style="font-size: x-small" id=${
+                msg.msg._id
+              } > ${msg.msg.senderId._id == user.id ? '...' + msg.status : ''}
+              '</span></p>'`
           )
           .join('')
         messagesDiv.append(space)
@@ -139,15 +134,13 @@
       socket.on('push message', msg => {
         if (document.getElementById(msg.doc._id)) return
         space.remove()
-        messagesDiv.innerHTML += `<p>${msg.doc.senderId.name} : ${msg.doc.text} ${
-          msg.doc.senderId._id == user.id
-            ? '<span style="font-size: x-small" id="' +
-              msg.doc._id +
-              '" >...' +
-              msg.status +
+        messagesDiv.innerHTML += `<p>${msg.doc.senderId.name} : ${
+          msg.doc.text
+        } <span style="font-size: x-small" id=${msg.doc._id} > ${
+          msg.doc.senderId._id == user.id ? '...' + msg.status : ''
+        }
               '</span></p>'
-            : '</p>'
-        }`
+        `
         messagesDiv.append(space)
         space.scrollIntoView(true, { behavior: 'smooth' })
       })
