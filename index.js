@@ -14,6 +14,7 @@ const Message = require('./Message')
 const User = require('./User')
 const uri = process.env.MONGODB_URI
 Mongo.connect(uri, (err, client) => {
+  if (err) console.log(err)
   if (!client) return
   mongoose.connect(uri)
   socketClient.on('connection', socket => {
