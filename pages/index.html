@@ -119,7 +119,7 @@
               `<p>${msg.msg.senderId.name} : ${msg.msg.text} <span style="font-size: x-small" id=${
                 msg.msg._id
               } > ${msg.msg.senderId._id == user.id ? '...' + msg.status : ''}
-              '</span></p>'`
+              </span></p>`
           )
           .join('')
         messagesDiv.append(space)
@@ -139,7 +139,7 @@
         } <span style="font-size: x-small" id=${msg.doc._id} > ${
           msg.doc.senderId._id == user.id ? '...' + msg.status : ''
         }
-              '</span></p>'
+              </span></p>
         `
         messagesDiv.append(space)
         space.scrollIntoView(true, { behavior: 'smooth' })
